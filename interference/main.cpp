@@ -8,6 +8,7 @@
 #include "shortgold.h"
 #include "orangeblackpurple.h"
 #include "threecolor.h"
+#include "greenblue.h"
 
 #define DEBUG false
 
@@ -33,6 +34,19 @@ public:
 		return true;
 	}
 
+    float value_for(int x, int y, int px, int py, float scale) {
+        float dx = px - x;
+        float dy = py - y;
+        float d = sqrt(dx * dx + dy * dy);
+        float value = 0;
+        if (pattern == 0) {
+            value = sin(d * scale);
+        } else if (pattern == 1) {
+            value = tan(d * scale);
+        }
+        return value;
+    }
+
 	bool OnUserUpdate(float fElapsedTime) override
 	{
 		int iters = 100;
@@ -40,7 +54,8 @@ public:
         if (GetMouse(0).bPressed) {
             points.push_back({GetMouseX(), GetMouseY(), scale});
         } else if (GetMouse(1).bPressed) {
-            points.pop_back();
+            if (points.size() > 0)
+                points.pop_back();
         } else if (GetKey(olc::Key::SPACE).bPressed) {
             points.clear();
         } else if (GetKey(olc::Key::RIGHT).bPressed) {
@@ -48,41 +63,31 @@ public:
         } else if (GetKey(olc::Key::LEFT).bPressed) {
             pattern = (pattern + 1) % 2;
         } else if (GetKey(olc::Key::UP).bPressed) {
-            color = (color + 1) % 5;
+            color = (color + 1) % 6;
         } else if (GetKey(olc::Key::DOWN).bPressed) {
-            color = (color + 4) % 5;
+            color = (color + 5) % 6;
         } else if (GetKey(olc::Key::Z).bPressed) {
-            scale += 0.05f;
+            scale *= 1.2f;
         } else if (GetKey(olc::Key::X).bPressed) {
-            scale -= 0.05f;
+            scale /= 1.2f;
         }
 
-        const float SIN_SCALE = 0.1f;
+        #pragma omp parallel for schedule(dynamic)
         for (int y = 0; y < ScreenHeight(); ++y) {
             for (int x = 0; x < ScreenWidth(); ++x) {
-                float N = points.size() + 1;
-                float total = 0.0;
-                for (auto const& p : points) {
-                    float dx = p.x - x;
-                    float dy = p.y - y;
-                    float d = sqrt(dx * dx + dy * dy);
-                    if (pattern == 0) {
-                        total += sin(d * p.scale) / N;
-                    } else if (pattern == 1) {
-                        total += tan(d * p.scale) / N;
-                    }
-                }
-                float dx = GetMouseX() - x;
-                float dy = GetMouseY() - y;
-                float d = sqrt(dx * dx + dy * dy);
-                if (pattern == 0) {
-                    total += sin(d * scale) / N;
-                } else {
-                    total += tan(d * scale) / N;
-                }
 
-                total += 1;
-                total *= 128;
+                float N = points.size();
+                float total = 0.0;
+                for (auto const& p : points)
+                    total += value_for(x, y, p.x, p.y, p.scale);
+
+                int mx = GetMouseX();
+                int my = GetMouseY();
+                if (mx != 0 && mx != ScreenWidth() - 1 && my != 0 && my != ScreenHeight() - 1) {
+                    N += 1;
+                    total += value_for(x, y, mx, my, this->scale);
+                }
+                total = (total / N + 1) * 128;
 
                 olc::Pixel col;
                 if (color == 0) {
@@ -95,6 +100,8 @@ public:
                     col = orangeblackpurple[std::min(255, std::max(0, (int)total))];
                 } else if (color == 4) {
                     col = threecolor[std::min(255, std::max(0, (int)total))];
+                } else if (color == 5) {
+                    col = greenblue[std::min(255, std::max(0, (int)total))];
                 }
                 Draw(x, y, col);
             }
@@ -117,10 +124,10 @@ int main()
     printf("- Right click to remove previous point.\n");
     printf("- Space to clear all points.\n");
     printf("- Z/X to change frequency of point.\n");
-    printf("- left/right to change between sin/tan.\n");
-    printf("- up/down to change color mappings.\n");
+    printf("- Left/right to change between sin/tan.\n");
+    printf("- Up/down to change color mappings.\n");
 
-	if (demo.Construct(512, 512, 2, 2))
+	if (demo.Construct(800, 500, 2, 2))
 		demo.Start();
 	return 0;
 }

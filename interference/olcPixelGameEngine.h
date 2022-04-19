@@ -4819,10 +4819,10 @@ namespace olc {
 				glutFullScreen();
 			}
 
-			if (vWindowSize.x > glutGet(GLUT_SCREEN_WIDTH) || vWindowSize.y > glutGet(GLUT_SCREEN_HEIGHT)) {
-				perror("ERROR: The specified window dimensions do not fit on your screen\n");
-				return olc::FAIL;
-			}
+			// if (vWindowSize.x > glutGet(GLUT_SCREEN_WIDTH) || vWindowSize.y > glutGet(GLUT_SCREEN_HEIGHT)) {
+			// 	perror("ERROR: The specified window dimensions do not fit on your screen\n");
+			// 	return olc::FAIL;
+			// }
 
 			// Create Keyboard Mapping
 			mapKeys[0x00] = Key::NONE;
