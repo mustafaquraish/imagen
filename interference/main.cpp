@@ -25,7 +25,7 @@ public:
 	Example()
 	{
 		// Name your application
-		sAppName = "Fancy Image Thingy";
+		sAppName = "Interference";
 	}
 
 public:

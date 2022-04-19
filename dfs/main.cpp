@@ -1,5 +1,5 @@
 #include <unordered_map>
-#include <stack>
+#include <vector>
 
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
@@ -19,16 +19,29 @@ public:
 	Example()
 	{
 		// Name your application
-		sAppName = "Fancy Image Thingy";
+		sAppName = "DFS";
 	}
 
 public:
 	bool OnUserCreate() override
 	{
 		// Called once at the start, so create things here
-        stack.push(0);
+        reset();
 		return true;
 	}
+
+    void reset() {
+        for (int y = 0; y < ScreenHeight(); ++y) {
+            for (int x = 0; x < ScreenWidth(); ++x) {
+                Draw(x, y, olc::BLACK);
+            }
+        }
+        visited.clear();
+        stack.clear();
+
+        int dummy = 0;
+        handlePixel(0, dummy);
+    }
 
     void handlePixel(int i, int& iters) 
     {
@@ -75,11 +88,13 @@ public:
         int perm[4] = {0, 1, 2, 3};
 
         // Shuffle the order of the neighbours
-        for (int i = 0; i < 4; i++) {
-            int j = rand() % 4;
-            int tmp = perm[i];
-            perm[i] = perm[j];
-            perm[j] = tmp;
+        if (use_random) {
+            for (int i = 0; i < 4; i++) {
+                int j = rand() % 4;
+                int tmp = perm[i];
+                perm[i] = perm[j];
+                perm[j] = tmp;
+            }
         }
 
         for (int i = 0; i < 4; i++) {
@@ -88,18 +103,31 @@ public:
             int ny = (y + dy[j] + ScreenHeight()) % ScreenHeight();
             int next = ny * ScreenWidth() + nx;
             if (visited.count(next) == 0) {
-                stack.push(next);
+                stack.push_back(next);
             }
         }
     }
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
-		int iters = 100;
+        if (GetKey(olc::Key::SPACE).bPressed) {
+            reset();
+        } else if (GetKey(olc::Key::RIGHT).bPressed || GetKey(olc::Key::LEFT).bPressed) {
+            use_random = !use_random;
+            reset();
+        } else if (GetKey(olc::Key::ESCAPE).bPressed || GetKey(olc::Key::Q).bPressed) {
+            return false;
+        }
+
+#if __EMSCRIPTEN__
+		int iters = 400;
+#else
+        int iters = 100;
+#endif
 
         while (stack.size() > 0 && iters > 0) {
-            int i = stack.top();
-            stack.pop();
+            int i = stack.back();
+            stack.pop_back();
             if (visited.count(i))
                 continue;
             handlePixel(i, iters);
@@ -107,14 +135,17 @@ public:
         return !DEBUG;
 	}
 
+    bool use_random = true;
     std::unordered_map<int, FPixel> visited;
-    std::stack<int> stack;
+    std::vector<int> stack;
 };
 
 int main()
 {
+    printf("- Space to reset.\n");
+    printf("- Left/Right to toggle stochastic mode.\n");
 	Example demo;
-	if (demo.Construct(256, 256, 4, 4))
+	if (demo.Construct(800, 500, 2, 2))
 		demo.Start();
 	return 0;
 }

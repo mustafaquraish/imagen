@@ -19,7 +19,7 @@ public:
 	Example()
 	{
 		// Name your application
-		sAppName = "Fancy Image Thingy";
+		sAppName = "Watercolor";
 	}
 
 public:
@@ -133,8 +133,12 @@ public:
             return false;
         }
 
+#if __EMSCRIPTEN__
+		int iters = 200;
+#else
+        int iters = 100;
+#endif
 
-		int iters = 100;
         while (stack.size() > 0 && iters > 0) {
             int rand_idx = rand() % stack.size();
             std::swap(stack[stack.size() - 1], stack[rand_idx]);
