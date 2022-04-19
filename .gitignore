@@ -1,5 +1,0 @@
-*.dSYM
-*/build/*
-interference/interference
-dfs/dfs
-watercolor/watercolor
