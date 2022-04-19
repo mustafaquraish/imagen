@@ -1,0 +1,38 @@
+# Build Workflow
+name: build
+
+# Run on Push
+on: [push]
+
+jobs:
+  build:
+    # Run this on a default linux machine
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Create build directory
+        run: |
+          mkdir -p build
+          cp index.html build/
+
+      - name: Build DFS
+        run: |
+          docker run --rm -v $(pwd):/mnt -w /mnt/dfs emscripten/emsdk make ems
+          cp -r dfs/build build/dfs
+
+      - name: Build watercolor
+        run: |
+          docker run --rm -v $(pwd):/mnt -w /mnt/watercolor emscripten/emsdk make ems
+          cp -r watercolor/build build/watercolor
+
+      - name: Build interference
+        run: |
+          docker run --rm -v $(pwd):/mnt -w /mnt/interference emscripten/emsdk make ems
+          cp -r interference/build build/interference
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@4.1.0
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: build
