@@ -25,13 +25,26 @@ public:
 public:
 	bool OnUserCreate() override
 	{
-		// Called once at the start, so create things here
-        for (int i = 0; i < ScreenWidth(); ++i) {
-            int dummy = 0;
-            handlePixel(i, dummy);
-        }
+		reset();
 		return true;
 	}
+
+    void reset() {
+        for (int y = 0; y < ScreenHeight(); ++y) {
+            for (int x = 0; x < ScreenWidth(); ++x) {
+                Draw(x, y, olc::BLACK);
+            }
+        }
+        visited.clear();
+        stack.clear();
+
+        if (mode == 0) {
+            for (int i = 0; i < ScreenWidth(); ++i) {
+                int dummy = 0;
+                handlePixel(i, dummy);
+            }
+        }
+    }
 
     void handlePixel(int i, int &iters) {
         static int dx[] = { 1, 0, -1, 0 };
@@ -60,7 +73,7 @@ public:
             G = 128.0;
             B = 177.0;
         } else {
-            const float mut = 25.0f;
+            const float mut = 10.0f;
             R = R/cnt + (drand48() * mut) - (mut/2);
             G = G/cnt + (drand48() * mut) - (mut/2);
             B = B/cnt + (drand48() * mut) - (mut/2);
@@ -100,8 +113,28 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
-		int iters = 100;
+        if (GetMouse(0).bPressed) {
+            int x = GetMouseX();
+            int y = GetMouseY();
+            int i = y * ScreenWidth() + x;
+            int dummy = 0;
+            handlePixel(i, dummy);
+        }
 
+        if (GetKey(olc::Key::SPACE).bPressed) {
+            reset();
+        } else if (GetKey(olc::Key::RIGHT).bPressed) {
+            mode = (mode + 1) % 2;
+            reset();
+        } else if (GetKey(olc::Key::LEFT).bPressed) {
+            mode = (mode + 1) % 2;
+            reset();
+        } else if (GetKey(olc::Key::Q).bPressed || GetKey(olc::Key::ESCAPE).bPressed) {
+            return false;
+        }
+
+
+		int iters = 100;
         while (stack.size() > 0 && iters > 0) {
             int rand_idx = rand() % stack.size();
             std::swap(stack[stack.size() - 1], stack[rand_idx]);
@@ -114,14 +147,18 @@ public:
         return !DEBUG;
 	}
 
+    int mode = 0;
     std::unordered_map<int, FPixel> visited;
     std::vector<int> stack;
 };
 
 int main()
 {
+    printf("- Click to start painting from a point.\n");
+    printf("- Space to reset.\n");
+    printf("- Right/Left to change mode.\n");
 	Example demo;
-	if (demo.Construct(256, 256, 4, 4))
+	if (demo.Construct(800, 500, 2, 2))
 		demo.Start();
 	return 0;
 }
