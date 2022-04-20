@@ -1,8 +1,10 @@
 #include <unordered_map>
 #include <vector>
+#include <time.h>
 
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
+#include "image.h"
 
 #define DEBUG false
 
@@ -111,6 +113,22 @@ public:
         }
     }
 
+    void save_as_image() {
+        auto img = Image(ScreenWidth(), ScreenHeight());
+        auto buffer = GetDrawTarget();
+
+        for (int y = 0; y < buffer->height; ++y) {
+            for (int x = 0; x < buffer->width; ++x) {
+                auto col = buffer->GetPixel(x, y);
+                img.set_pixel(x, y, col.r, col.g, col.b);
+            }
+        }
+        char filename[256];
+        sprintf(filename, "water_%lu.ppm", (unsigned long)time(NULL));
+        printf("Saving %s with (%dx%d)\n", filename, ScreenWidth(), ScreenHeight());
+        img.save(filename);
+    }
+
 	bool OnUserUpdate(float fElapsedTime) override
 	{
         if (GetMouse(0).bPressed) {
@@ -132,6 +150,12 @@ public:
         } else if (GetKey(olc::Key::Q).bPressed || GetKey(olc::Key::ESCAPE).bPressed) {
             return false;
         }
+
+#ifndef __EMSCRIPTEN__
+        if (GetKey(olc::Key::S).bPressed) {
+            save_as_image();
+        }
+#endif
 
 #if __EMSCRIPTEN__
 		int iters = 200;
@@ -156,7 +180,7 @@ public:
     std::vector<int> stack;
 };
 
-int main()
+int main(int argc, char**argv)
 {
     printf("- Click to start painting from a point.\n");
     printf("- Space to reset.\n");

@@ -18,18 +18,21 @@ jobs:
 
       - name: Build DFS
         run: |
-          docker run --rm -v $(pwd):/mnt -w /mnt/dfs emscripten/emsdk make ems
-          cp -r dfs/build build/dfs
+          cd dfs
+          ../docker.sh
+          cp -r build ../build/dfs
 
       - name: Build watercolor
         run: |
-          docker run --rm -v $(pwd):/mnt -w /mnt/watercolor emscripten/emsdk make ems
-          cp -r watercolor/build build/watercolor
+          cd watercolor
+          ../docker.sh
+          cp -r build ../build/watercolor
 
       - name: Build interference
         run: |
-          docker run --rm -v $(pwd):/mnt -w /mnt/interference emscripten/emsdk make ems
-          cp -r interference/build build/interference
+          cd interference
+          ../docker.sh
+          cp -r build ../build/interference
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@4.1.0

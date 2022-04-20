@@ -3,6 +3,7 @@
 
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
+#include "image.h"
 
 #include "fleshgrad.h"
 #include "shortgold.h"
@@ -47,6 +48,22 @@ public:
         return value;
     }
 
+    void save_as_image() {
+        auto img = Image(ScreenWidth(), ScreenHeight());
+        auto buffer = GetDrawTarget();
+
+        for (int y = 0; y < buffer->height; ++y) {
+            for (int x = 0; x < buffer->width; ++x) {
+                auto col = buffer->GetPixel(x, y);
+                img.set_pixel(x, y, col.r, col.g, col.b);
+            }
+        }
+        char filename[256];
+        sprintf(filename, "dfs_%lu.ppm", (unsigned long)time(NULL));
+        printf("Saving %s with (%dx%d)\n", filename, ScreenWidth(), ScreenHeight());
+        img.save(filename);
+    }
+
 	bool OnUserUpdate(float fElapsedTime) override
 	{
 		int iters = 100;
@@ -71,6 +88,12 @@ public:
         } else if (GetKey(olc::Key::X).bPressed) {
             scale /= 1.2f;
         }
+
+#ifndef __EMSCRIPTEN__
+        if (GetKey(olc::Key::S).bPressed) {
+            save_as_image();
+        }
+#endif
 
         #pragma omp parallel for schedule(dynamic)
         for (int y = 0; y < ScreenHeight(); ++y) {
