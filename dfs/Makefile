@@ -1,4 +1,4 @@
 SRC = main.cpp
 EXE = dfs
 
-include ../Makefile
+include ../common/Makefile

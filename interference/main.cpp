@@ -101,12 +101,12 @@ public:
         } else if (GetKey(olc::Key::X).bPressed) {
             scale /= 1.2f;
             update = true;
-        } else if (GetKey(olc::Key::Q).bPressed || GetKey(olc::Key::ESCAPE).bPressed) {
-            return false;
         }
 
 #ifndef __EMSCRIPTEN__
-        if (GetKey(olc::Key::S).bPressed) {
+        if (GetKey(olc::Key::Q).bPressed || GetKey(olc::Key::ESCAPE).bPressed) {
+            return false;
+        } else if (GetKey(olc::Key::S).bPressed) {
             save_as_image();
         }
 #endif

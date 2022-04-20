@@ -1,4 +1,4 @@
 SRC = main.cpp
 EXE = interference
 
-include ../Makefile
+include ../common/Makefile

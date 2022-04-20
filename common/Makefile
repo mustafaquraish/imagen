@@ -1,6 +1,13 @@
 # nice lil make file
 
-LIB = -framework OpenGL -framework GLUT -lpng
+LIB :=  -lpng
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	LIB += -lX11 -lGL -lpthread -lstdc++fs
+endif
+ifeq ($(UNAME_S),Darwin)
+	LIB += -framework OpenGL -framework GLUT
+endif
 CCFLAGS += -std=c++17 -g -I ../common/
 
 BUILD = build
@@ -11,10 +18,10 @@ EMFLAGS += -s MAX_WEBGL_VERSION=2 -s MIN_WEBGL_VERSION=2
 EMFLAGS += -s USE_LIBPNG=1 -O3
 
 all:
-	g++ $(CCFLAGS) $(LIB) $(SRC) -o $(EXE) -O3
+	g++ $(CCFLAGS) $(SRC) -o $(EXE) $(LIB) 
 
 debug:
-	g++ $(CCFLAGS) $(LIB) $(SRC) -o $(EXE)
+	g++ $(LIB) $(CCFLAGS) $(SRC) -o $(EXE)
 
 $(BUILD):
 	mkdir -p $@

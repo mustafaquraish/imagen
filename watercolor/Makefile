@@ -1,4 +1,4 @@
 SRC = main.cpp
 EXE = watercolor
 
-include ../Makefile
+include ../common/Makefile
