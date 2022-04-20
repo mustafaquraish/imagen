@@ -12,6 +12,7 @@ struct FPixel {
     float r;
     float g;
     float b;
+    float a;
 };
 
 // Override base class with your custom functionality
@@ -27,14 +28,24 @@ public:
 public:
 	bool OnUserCreate() override
 	{
+        SetPixelMode(olc::Pixel::ALPHA);
+
 		reset();
 		return true;
 	}
 
     void reset() {
+        start_color = {
+            uint8_t(rand() % 100 + 128),
+            uint8_t(rand() % 100 + 128),
+            uint8_t(rand() % 100 + 128),
+        };
+        olc::Pixel base_color = olc::Pixel(0, 0, 0);
+        if (use_alpha) base_color = start_color;
+
         for (int y = 0; y < ScreenHeight(); ++y) {
             for (int x = 0; x < ScreenWidth(); ++x) {
-                Draw(x, y, olc::BLACK);
+                Draw(x, y, base_color);
             }
         }
         visited.clear();
@@ -54,7 +65,7 @@ public:
         int x = i % ScreenWidth();
         int y = i / ScreenWidth();
 
-        float R = 0, G = 0, B = 0;
+        float R = 0, G = 0, B = 0, A = 0;
         int cnt = 0;
         for (int i = 0; i < 4; i++) {
             int nx = x + dx[i];
@@ -65,27 +76,35 @@ public:
                 R += col.r;
                 G += col.g;
                 B += col.b;
+                A += col.a;
                 cnt++;
             }
         }
 
         olc::Pixel col;
         if (cnt == 0) {
-            R = 255.0;
-            G = 128.0;
-            B = 177.0;
+            R = start_color.r;
+            G = start_color.g;
+            B = start_color.b;
+            A = start_color.a;
         } else {
-            const float mut = 10.0f;
+            const float mut = use_alpha ? 2.0f : 8.0f;
             R = R/cnt + (drand48() * mut) - (mut/2);
             G = G/cnt + (drand48() * mut) - (mut/2);
             B = B/cnt + (drand48() * mut) - (mut/2);
+
             R = std::fmin(255, std::fmax(0, R));
             G = std::fmin(255, std::fmax(0, G));
             B = std::fmin(255, std::fmax(0, B));
+
+            A = A/cnt + (drand48() * mut) - (mut/2);
+            A = std::fmin(255, std::fmax(150, A));
         }
 
-        col = olc::Pixel(R, G, B);
-        visited.insert({i, {R, G, B}});
+        if (!use_alpha) A = 255;
+
+        col = olc::Pixel(R, G, B, A);
+        visited.insert({i, {R, G, B, A}});
         Draw(x, y, col);
         iters--;
 
@@ -149,6 +168,9 @@ public:
             reset();
         } else if (GetKey(olc::Key::Q).bPressed || GetKey(olc::Key::ESCAPE).bPressed) {
             return false;
+        } else if (GetKey(olc::Key::A).bPressed) {
+            use_alpha = !use_alpha;
+            reset();
         }
 
 #ifndef __EMSCRIPTEN__
@@ -172,6 +194,8 @@ public:
         return !DEBUG;
 	}
 
+    olc::Pixel start_color;
+    bool use_alpha = false;
     int mode = 0;
     std::unordered_map<int, FPixel> visited;
     std::vector<int> stack;
@@ -182,6 +206,7 @@ int main(int argc, char**argv)
     printf("- Click to start painting from a point.\n");
     printf("- Space to reset.\n");
     printf("- Right/Left to change mode.\n");
+    printf("- A to turn on/off alpha blending.\n");
 	Example demo;
 	if (demo.Construct(800, 500, 2, 2))
 		demo.Start();
