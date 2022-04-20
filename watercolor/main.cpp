@@ -157,11 +157,8 @@ public:
         }
 #endif
 
-#if __EMSCRIPTEN__
-		int iters = 200;
-#else
-        int iters = 100;
-#endif
+        constexpr float NUM_SECONDS = 8;
+        int iters = fElapsedTime * ScreenHeight() * ScreenWidth() / NUM_SECONDS;
 
         while (stack.size() > 0 && iters > 0) {
             int rand_idx = rand() % stack.size();

@@ -47,8 +47,8 @@ public:
 
     void handlePixel(int i, int& iters)
     {
-        static int dx[] = { 1, 0, -1, 0 };
-        static int dy[] = { 0, 1, 0, -1 };
+        static int dx[] = { -1, 0, 1, 0 };
+        static int dy[] = { 0, -1, 0, 1 };
         int x = i % ScreenWidth();
         int y = i / ScreenWidth();
 
@@ -144,11 +144,8 @@ public:
         }
 #endif
 
-#if __EMSCRIPTEN__
-		int iters = 400;
-#else
-        int iters = 100;
-#endif
+        constexpr float NUM_SECONDS = 8;
+        int iters = fElapsedTime * ScreenHeight() * ScreenWidth() / NUM_SECONDS;
 
         while (stack.size() > 0 && iters > 0) {
             int i = stack.back();
