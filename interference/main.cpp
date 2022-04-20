@@ -66,27 +66,43 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
-		int iters = 100;
+        bool update = false;
+
+        int mx = GetMouseX();
+        int my = GetMouseY();
+
+        if (px != mx || py != my)
+            update = true;
 
         if (GetMouse(0).bPressed) {
-            points.push_back({GetMouseX(), GetMouseY(), scale});
+            points.push_back({mx, my, scale});
         } else if (GetMouse(1).bPressed) {
             if (points.size() > 0)
                 points.pop_back();
+            update = true;
         } else if (GetKey(olc::Key::SPACE).bPressed) {
             points.clear();
+            update = true;
         } else if (GetKey(olc::Key::RIGHT).bPressed) {
             pattern = (pattern + 1) % 2;
+            update = true;
         } else if (GetKey(olc::Key::LEFT).bPressed) {
             pattern = (pattern + 1) % 2;
+            update = true;
         } else if (GetKey(olc::Key::UP).bPressed) {
             color = (color + 1) % 6;
+            update = true;
         } else if (GetKey(olc::Key::DOWN).bPressed) {
             color = (color + 5) % 6;
+            update = true;
         } else if (GetKey(olc::Key::Z).bPressed) {
             scale *= 1.2f;
+            update = true;
         } else if (GetKey(olc::Key::X).bPressed) {
             scale /= 1.2f;
+            update = true;
+        } else if (GetKey(olc::Key::Q).bPressed || GetKey(olc::Key::ESCAPE).bPressed) {
+            return false;
         }
 
 #ifndef __EMSCRIPTEN__
@@ -95,7 +111,10 @@ public:
         }
 #endif
 
-        #pragma omp parallel for schedule(dynamic)
+        if (!update)
+            return true;
+
+        // #pragma omp parallel for schedule(dynamic)
         for (int y = 0; y < ScreenHeight(); ++y) {
             for (int x = 0; x < ScreenWidth(); ++x) {
 
@@ -130,11 +149,18 @@ public:
             }
         }
 
+        px = mx;
+        py = my;
+
         return !DEBUG;
 	}
 
     int pattern = 0;
     int color = 0;
+
+    int px = -1;
+    int py = -1;
+
     float scale = 0.1;
     std::vector<Point2D> points;
 };
