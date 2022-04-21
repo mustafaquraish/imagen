@@ -88,7 +88,7 @@ public:
             B = start_color.b;
             A = start_color.a;
         } else {
-            const float mut = use_alpha ? 2.0f : 8.0f;
+            const float mut = use_alpha ? 3.0f : 8.0f;
             R = R/cnt + (drand48() * mut) - (mut/2);
             G = G/cnt + (drand48() * mut) - (mut/2);
             B = B/cnt + (drand48() * mut) - (mut/2);
